@@ -1,0 +1,24 @@
+---
+- name: Generate DHCP Server Configuration
+  hosts: dhcp_servers
+  tasks:
+    - name: Ensure the DHCP configuration directory exists
+      file:
+        path: /etc/dhcp
+        state: directory
+        mode: '0755'
+
+    - name: Generate the DHCP server configuration file from template
+      template:
+        src: templates/dhcpd.conf.j2
+        dest: /etc/dhcp/dhcpd.conf
+        mode: '0644'
+      notify:
+        - restart dhcp service
+
+  handlers:
+    - name: restart dhcp service
+      service:
+        name: dhcpd
+        state: restarted
+

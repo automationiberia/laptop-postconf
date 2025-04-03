@@ -1,0 +1,79 @@
+- name: "Push Local Images to Container Registry"
+  hosts: localhost
+  gather_facts: false
+  vars:
+    registry_url_dest: "laptop-int.bcnconsulting.com:5000"  # Destination registry
+    registry_tls_verify: false
+
+  tasks:
+    - name: Get local images containing the hostname
+      ansible.builtin.shell: |
+        podman images --format "{{ '{{' }}.Repository{{ '}}' }}:{{ '{{' }}.Tag{{ '}}' }}" | grep "$(uname -n)"
+      register: filtered_images
+      changed_when: false
+
+    - name: Debug - Show images to be pushed
+      ansible.builtin.debug:
+        msg: "{{ filtered_images.stdout_lines }}"
+
+    - name: Parse images into a structured list
+      set_fact:
+        images_to_push: "{{ filtered_images.stdout_lines | map('regex_replace', '^(.+):(.+)$', '{\"name\": \"\\1\", \"tag\": \"\\2\"}') | map('from_json') | list }}"
+
+    - name: Debug - Show parsed image list
+      ansible.builtin.debug:
+        msg: "{{ images_to_push }}"
+
+    - name: Login to destination registry (if credentials are provided)
+      containers.podman.podman_login:
+        registry: "{{ registry_url_dest }}"
+        username: "{{ registry_username }}"
+        password: "{{ registry_password }}"
+        validate_certs: "{{ registry_tls_verify }}"
+      when: registry_username is defined and registry_password is defined
+
+    - name: Push images to the destination registry
+      containers.podman.podman_image:
+        name: "{{ item.name }}:{{ item.tag }}"
+        push: true
+        validate_certs: "{{ registry_tls_verify }}"
+      loop: "{{ images_to_push }}"
+      loop_control:
+        loop_var: item
+
+    - name: Get local images NOT containing the hostname
+      ansible.builtin.shell: |
+        podman images --format '{% raw %}{{.Repository}}:{{.Tag}}{% endraw %}' | grep -v "$(uname -n)" || true
+      register: list_to_delete_local_images
+      changed_when: false
+
+
+    - block:
+        - name: Debug - Show images to be deleted
+          ansible.builtin.debug:
+            msg: "{{ list_to_delete_local_images.stdout_lines }}"
+
+        - name: Parse images to be deleted into a structured list
+          ansible.builtin.set_fact:
+            images_to_delete: "{{ list_to_delete_local_images.stdout_lines | map('regex_replace', '^(.+):(.+)$', '{\"name\": \"\\1\", \"tag\": \"\\2\"}') | map('from_json') | list }}"
+
+        - name: Debug - Show parsed images to be deleted list
+          ansible.builtin.debug:
+            msg: "{{ images_to_delete }}"
+
+        - name: Delete local images NOT containing the hostname
+          containers.podman.podman_image:
+            name: "{{ item.name }}:{{ item.tag }}"
+            state: absent
+            validate_certs: "{{ registry_tls_verify }}"
+          loop: "{{ images_to_delete }}"
+          loop_control:
+            loop_var: item
+          when: delete_local_images is defined and delete_local_images
+      when: list_to_delete_local_images.stdout_lines | length > 0
+
+    - name: Log out from the destination registry (if logged in)
+      containers.podman.podman_logout:
+        registry: "{{ registry_url_dest }}"
+      when: registry_username is defined and registry_password is defined
+

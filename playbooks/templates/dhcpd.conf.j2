@@ -1,0 +1,48 @@
+# DHCP Server Configuration file
+# See /usr/share/doc/dhcp-server/dhcpd.conf.example
+# See dhcpd.conf(5) man page
+
+option architecture-type code 93 = unsigned integer 16;
+
+subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
+  interface {{ dhcp_interface }};
+  option routers {{ dhcp_routers }};
+  option domain-name-servers {{ dhcp_dns_servers }};
+  range {{ dhcp_range_start }} {{ dhcp_range_end }};
+
+{% for group in ['edge_servers_nord', 'edge_servers_south'] %}
+{% if groups[group] is defined %}
+{% for host in groups[group] %}
+  host {{ host  }} {
+    hardware ethernet {{ hostvars[host].dhcp_mac }};  # MAC address
+    fixed-address {{ hostvars[host].dhcp_ip }};       # IP address
+    option host-name "{{ hostvars[host].dhcp_hostname }}"; # Hostname
+{% if hostvars[host].dhcp_image_type is defined and hostvars[host].dhcp_system_boot_mode is defined %}
+    filename "{{ lookup('vars', 'dhcp_filename_' + hostvars[host].dhcp_system_boot_mode | lower + '_' + hostvars[host].dhcp_image_type + '_' + hostvars[host].dhcp_network_boot_protocol | default('ipxe')) }}";
+{% if hostvars[host].dhcp_network_boot_protocol | default('ipxe') | lower == "ipxe" %}
+    next-server {{ dhcp_ipxe_tftp }};
+{% endif %}
+{% endif %}
+    }
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+
+  class "pxeclients" {
+    match if substring(option vendor-class-identifier, 0, 9) = "PXEClient";
+    next-server {{ dhcp_ipxe_tftp }};
+    if option architecture-type = {{ dhcp_ipxe_architecture_type }} {
+      filename "{{ dhcp_filename_efi_default_ipxe }}";
+    }
+    filename "{{ dhcp_filename_bios_default_ipxe }}";
+  }
+
+  class "httpclients" {
+    match if substring(option vendor-class-identifier, 0, 10) = "HTTPClient";
+    option vendor-class-identifier "HTTPClient";
+    filename "{{ dhcp_filename_efi_default_httpboot }}";
+  }
+
+  # DENY Dynamic IPs (Only serve fixed addresses)
+  deny unknown-clients;
+}
