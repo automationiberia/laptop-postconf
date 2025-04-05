@@ -1,0 +1,27 @@
+# Generated GRUB configuration for iPXE
+set default="0"
+
+function load_video {
+  insmod efi_gop
+  insmod efi_uga
+  insmod video_bochs
+  insmod video_cirrus
+  insmod all_video
+}
+
+load_video
+set gfxpayload=keep
+insmod gzio
+insmod part_gpt
+insmod ext2
+
+set timeout={{ efi_timeout }}
+
+search --no-floppy --set=root -l '{{ efi_baseos_label }}'
+
+{% for type in image_types %}
+menuentry '{{ menuentry_name }} - {{ type | upper }} IPXE TFTP ({{ image_company }})' --class fedora --class gnu-linux --class gnu --class os {
+  linux {{ efi_ipxe_vmlinuz }} inst.repo=http://{{ laptop_http_ip }}/rhel84 inst.ks=http://{{ laptop_http_ip }}/kickstarts/{{ type | lower }}.ks quiet
+  initrd {{ efi_ipxe_initrd_img }}
+}
+{% endfor %}
