@@ -1,0 +1,27 @@
+---
+image_types:
+  - "DEVICE-IMAGE1"
+  - "DEVICE-IMAGE2"
+  - "DEVICE-IMAGE3"
+  - "DEVICE-IMAGE4"
+image_boot:
+  - "BIOS"
+  - "iPXE"
+  - "HTTPBOOT"
+image_company: "silvinux"
+laptop_http_ip: "192.168.50.1"
+menuentry_name: "ZTP Red Hat Device Edge RHEL84"
+bios_ipxe_files_destination: /tmp
+bios_ipxe_timeout: 300000
+bios_ipxe_vmlinuz: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/vmlinuz"
+bios_ipxe_initrd_img: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/initrd.img"
+efi_timeout: 15
+efi_baseos_label: "RHEL-8-4-0-BaseOS-x86_64"
+efi_httpboot_vmlinuz: "/rhel84/images/pxeboot/vmlinuz"
+efi_httpboot_initrd_img: "/rhel84/images/pxeboot/initrd.img"
+efi_ipxe_vmlinuz: "rhel84/images/vmlinuz"
+efi_ipxe_initrd_img: "rhel84/images/initrd.img"
+efi_grub_files_destination: /tmp
+anaconda_inst_repo: "inst.repo=http://{{ laptop_http_ip }}/rhel84"
+anaconda_inst_ks_path: "inst.ks=http://{{ laptop_http_ip }}/kickstarts"
+...

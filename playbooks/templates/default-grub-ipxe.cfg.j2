@@ -21,7 +21,7 @@ search --no-floppy --set=root -l '{{ efi_baseos_label }}'
 
 {% for type in image_types %}
 menuentry '{{ menuentry_name }} - {{ type | upper }} IPXE TFTP ({{ image_company }})' --class fedora --class gnu-linux --class gnu --class os {
-  linux {{ efi_ipxe_vmlinuz }} inst.repo=http://{{ laptop_http_ip }}/rhel84 inst.ks=http://{{ laptop_http_ip }}/kickstarts/{{ type | lower }}.ks quiet
-  initrd {{ efi_ipxe_initrd_img }}
+  linuxefi {{ efi_ipxe_vmlinuz }} inst.repo=http://{{ laptop_http_ip }}/rhel84 inst.ks=http://{{ laptop_http_ip }}/kickstarts/{{ type | lower }}.ks quiet
+  initrdefi {{ efi_ipxe_initrd_img }}
 }
 {% endfor %}

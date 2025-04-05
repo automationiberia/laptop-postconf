@@ -36,12 +36,12 @@
 
     - name: Render the EFI HTTPBOOT GRUB DEFAULT config
       template:
-        src: templates/default_grub_httpboot.cfg.j2
+        src: templates/default-grub-httpboot.cfg.j2
         dest: "{{ efi_grub_files_destination }}/grub-httpboot.cfg"
 
     - name: Generate iPXE GRUB config
       template:
-        src: templates/default_grub_ipxe.cfg.j2
+        src: templates/default-grub-ipxe.cfg.j2
         dest: "{{ efi_grub_files_destination }}/grub-ipxe-tftp.cfg"
 
     - name: Render the BIOS IPXE menu configuration and save it to dir for each image
