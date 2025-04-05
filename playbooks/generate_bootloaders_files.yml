@@ -1,5 +1,5 @@
 ---
-- name: Generate bootloader config files for BIOS iPXE, EFI iPXE and EFI HTTPBOOT and save it in dir for each image type
+- name: Generate boot configuration for BIOS iPXE
   hosts: localhost
   become: false
   vars:
@@ -20,16 +20,30 @@
     bios_ipxe_vmlinuz: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/vmlinuz"
     bios_ipxe_initrd_img: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/initrd.img"
     efi_timeout: 15
-    efi_timeout: 15
     efi_baseos_label: "RHEL-8-4-0-BaseOS-x86_64"
     efi_httpboot_vmlinuz: "/rhel84/images/pxeboot/vmlinuz"
     efi_httpboot_initrd_img: "/rhel84/images/pxeboot/initrd.img"
-    efi_ipxe_vmlinuz: "rhel84/images/pxeboot/vmlinuz"
+    efi_ipxe_vmlinuz: "rhel84/images/vmlinuz"
     efi_ipxe_initrd_img: "rhel84/images/initrd.img"
     efi_grub_files_destination: /tmp
     anaconda_inst_repo: "inst.repo=http://{{ laptop_http_ip }}/rhel84"
     anaconda_inst_ks_path: "inst.ks=http://{{ laptop_http_ip }}/kickstarts"
   tasks:
+    - name: Render the BIOS IPXE menu DEFAULT configuration and save it to dir for each image
+      template:
+        src: templates/default-ipxe-menu.ipxe.j2
+        dest: "{{ bios_ipxe_files_destination }}/device-image.ipxe"
+
+    - name: Render the EFI HTTPBOOT GRUB DEFAULT config
+      template:
+        src: templates/default_grub_httpboot.cfg.j2
+        dest: "{{ efi_grub_files_destination }}/grub-httpboot.cfg"
+
+    - name: Generate iPXE GRUB config
+      template:
+        src: templates/default_grub_ipxe.cfg.j2
+        dest: "{{ efi_grub_files_destination }}/grub-ipxe-tftp.cfg"
+
     - name: Render the BIOS IPXE menu configuration and save it to dir for each image
       template:
         src: templates/ipxe-menu.cfg.j2
