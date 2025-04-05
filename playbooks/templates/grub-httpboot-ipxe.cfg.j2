@@ -1,0 +1,30 @@
+# Generated GRUB configuration
+set default="0"
+
+function load_video {
+  insmod efi_gop
+  insmod efi_uga
+  insmod video_bochs
+  insmod video_cirrus
+  insmod all_video
+}
+
+load_video
+set gfxpayload=keep
+insmod gzio
+insmod part_gpt
+insmod ext2
+
+set timeout={{ efi_timeout }}
+
+search --no-floppy --set=root -l '{{ efi_baseos_label }}'
+
+menuentry '{{ __menuentry_pretty_name }}' --class fedora --class gnu-linux --class gnu --class os {
+  {% if item.0 == 'iPXE' %}
+    linuxefi {{ efi_ipxe_vmlinuz }} {{ __anaconda_kernel_parameters }} quiet
+    initrdefi {{ efi_ipxe_initrd_img }}
+  {% elif item.0 == 'HTTPBOOT' %}
+    linuxefi {{ efi_httpboot_vmlinuz }} {{ __anaconda_kernel_parameters }} quiet
+    initrdefi {{ efi_httpboot_initrd_img }}
+  {% endif %}
+}

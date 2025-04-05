@@ -15,3 +15,28 @@ An Ansible collection for post-configuration tasks on laptops, including DHCP se
 - Ansible 2.15.13 or later
 - Supported Linux distributions (RHEL like)
 
+## Ansible Playbook Commands
+
+Below are the commands to execute the playbooks for configuring and managing the system:
+
+1. Configure DHCP Server:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.dhcpd_configure.yaml -i ansible-content/inventories/ -e @ansible-content/vars/dhcp_server_vars.yaml
+    ```
+
+2. Upload Images Locally:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.upload_images_local.yaml
+    ```
+
+3. Gather Version Information from Edge:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.edge_gather_version_info.yaml -i ansible-content/inventories/ -u admin -k
+    ```
+
+4. Generate Bootloader Files:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.generate_bootloaders_files.yml -e '{efi_grub_files_destination: ~/iso-build/laptop-rhel84/DevicesGRUBs/, bios_ipxe_files_destination: ~/iso-build/laptop-rhel84/ipxe/}'
+    ```
+
+Make sure to replace any placeholders like `admin` with appropriate values and adjust paths if necessary.

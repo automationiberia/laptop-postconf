@@ -1,0 +1,49 @@
+#!ipxe
+set sleeptime 60
+menu Boot Selection {{ menuentry_name }} {{ item }}
+item --gap -- --- Select Image to Build Edge Device ---
+item
+{% for image in image_types %}
+item {{ image | lower }} Provision {{ image }} Edge Device
+{% endfor %}
+item
+item --gap -- --- Alternatives ---
+item --key r reboot (R)eboot computer
+item --key x exit E(x)it and continue BIOS boot order
+item
+
+choose --default {{ item | lower }} --timeout {{ bios_ipxe_timeout }} image && goto ${image}
+
+{% for image in image_types %}
+:{{ image | lower }}
+kernel {{ bios_ipxe_vmlinuz }} {{ anaconda_inst_repo }} {{ anaconda_inst_ks_path }}/{{ image | lower }}.ks
+initrd {{ bios_ipxe_initrd_img }} || goto download_fail
+boot && exit 0 || goto boot_fail
+{% endfor %}
+
+:download_fail
+echo
+echo Download Failure
+goto return_menu
+:boot_fail
+echo
+echo Boot Failure
+goto return_menu
+:dhcp_fail
+echo
+echo DHCP Failure
+goto return_menu
+:return_menu
+ifclose
+sleep ${sleeptime}
+goto env_menu
+:reboot
+echo Rebooting...
+ifclose
+sleep ${sleeptime}
+reboot
+:exit
+echo Continuing BIOS boot order...
+ifclose
+sleep ${sleeptime}
+exit 1

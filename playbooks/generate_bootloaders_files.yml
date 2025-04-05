@@ -1,0 +1,61 @@
+---
+- name: Generate bootloader config files for BIOS iPXE, EFI iPXE and EFI HTTPBOOT and save it in dir for each image type
+  hosts: localhost
+  become: false
+  vars:
+    image_types:
+      - "DEVICE-IMAGE1"
+      - "DEVICE-IMAGE2"
+      - "DEVICE-IMAGE3"
+      - "DEVICE-IMAGE4"
+    image_boot:
+      - "BIOS"
+      - "iPXE"
+      - "HTTPBOOT"
+    image_company: "silvinux"
+    laptop_http_ip: "192.168.50.1"
+    menuentry_name: "ZTP Red Hat Device Edge RHEL84"
+    bios_ipxe_files_destination: /tmp
+    bios_ipxe_timeout: 300000
+    bios_ipxe_vmlinuz: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/vmlinuz"
+    bios_ipxe_initrd_img: "http://{{ laptop_http_ip }}/rhel84/images/pxeboot/initrd.img"
+    efi_timeout: 15
+    efi_timeout: 15
+    efi_baseos_label: "RHEL-8-4-0-BaseOS-x86_64"
+    efi_httpboot_vmlinuz: "/rhel84/images/pxeboot/vmlinuz"
+    efi_httpboot_initrd_img: "/rhel84/images/pxeboot/initrd.img"
+    efi_ipxe_vmlinuz: "rhel84/images/pxeboot/vmlinuz"
+    efi_ipxe_initrd_img: "rhel84/images/initrd.img"
+    efi_grub_files_destination: /tmp
+    anaconda_inst_repo: "inst.repo=http://{{ laptop_http_ip }}/rhel84"
+    anaconda_inst_ks_path: "inst.ks=http://{{ laptop_http_ip }}/kickstarts"
+  tasks:
+    - name: Render the BIOS IPXE menu configuration and save it to dir for each image
+      template:
+        src: templates/ipxe-menu.cfg.j2
+        dest: "{{ bios_ipxe_files_destination }}/{{ item | lower }}.ipxe"
+        mode: '0644'
+      with_items: "{{ image_types }}"
+      loop_control:
+        label: "{{ item }}"
+      vars:
+        __anaconda_inst_ks: "{{ anaconda_inst_ks_path }}/{{ item | lower }}.ks"
+        __anaconda_kernel_parameters: "{{ anaconda_inst_repo }} {{ __anaconda_inst_ks }} {{ anaconda_extra_kernel_parameters | default ('') }}"
+        __menuentry_pretty_name: "{{ menuentry_name }} - {{ item }} {{ image_boot[0] }} ({{ image_company }})"
+
+    - name: Render the GRUB configuration template and save it to /tmp for each image_boot and image_type
+      when: item.0  != 'BIOS'
+      template:
+        src: templates/grub-httpboot-ipxe.cfg.j2
+        dest: "{{ efi_grub_files_destination }}/grub-{{ item.0 | lower }}-{{ item.1 | lower }}.cfg"
+        mode: '0644'
+      with_nested:
+        - "{{ image_boot }}"
+        - "{{ image_types }}"
+      loop_control:
+        label: "{{ item.0 }} - {{ item.1 }}"
+      vars:
+        __anaconda_inst_ks: "{{ anaconda_inst_ks_path }}/{{ item.1 | lower }}.ks"
+        __anaconda_kernel_parameters: "{{ anaconda_inst_repo }} {{ __anaconda_inst_ks }} {{ anaconda_extra_kernel_parameters | default ('') }}"
+        __menuentry_pretty_name: "{{ menuentry_name }} - {{ item.1 }} {{ item.0 }} ({{ image_company }})"
+...
