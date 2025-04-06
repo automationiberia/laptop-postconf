@@ -29,12 +29,17 @@ Below are the commands to execute the playbooks for configuring and managing the
     ansible-playbook os_mgmt.laptop_postconf.upload_images_local.yaml
     ```
 
-3. Gather Version Information from Edge:
+3. Tag and Push Images Locally and run podman-autoupdate:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.tag_images.yaml -e@ansible-content/vars/tag_images_vars.yaml
+    ```
+
+4. Gather Version Information from Edge:
     ```bash
     ansible-playbook os_mgmt.laptop_postconf.edge_gather_version_info.yaml -i ansible-content/inventories/ -u admin -k
     ```
 
-4. Generate Bootloader Files:
+5. Generate Bootloader Files:
     ```bash
     ansible-playbook os_mgmt.laptop_postconf.generate_bootloaders_files.yml -e '{efi_grub_files_destination: ~/iso-build/laptop-rhel84/DevicesGRUBs/, bios_ipxe_files_destination: ~/iso-build/laptop-rhel84/ipxe/}'
     ```

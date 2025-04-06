@@ -1,0 +1,52 @@
+---
+- name: Tag Device Images to Prod, push and run podman-autoupdate
+  hosts: localhost
+  gather_facts: false
+  vars:
+    source_image_list:
+      - source_image_name: "rhde-lptp.bcnconsulting.com:5000/image1-rhel84"
+        source_image_tag: "1.0.2"
+      - source_image_name: "rhde-lptp.bcnconsulting.com:5000/image2-rhel84"
+        source_image_tag: "2.1.0"
+    debug_enabled: false
+
+  tasks:
+    - name: Check if image exists locally
+      containers.podman.podman_image_info:
+        name: "{{ __source_image_list_item.source_image_name }}:{{ __source_image_list_item.source_image_tag }}"
+      register: image_info_results
+      loop: "{{ source_image_list }}"
+      loop_control:
+        loop_var: __source_image_list_item
+
+    - name: Debug image_info_results
+      debug:
+        var: image_info_results
+      when: debug_enabled
+
+    - name: Set fact with image existence info
+      set_fact:
+        image_existence: "{{ image_existence | default({}) | combine({ (__image_info_results_results_item.__source_image_list_item.source_image_name + ':' + __image_info_results_results_item.__source_image_list_item.source_image_tag): (__image_info_results_results_item.images | length > 0) }) }}"
+      loop: "{{ image_info_results.results }}"
+      loop_control:
+        loop_var: __image_info_results_results_item
+
+    - name: Debug image_existence fact
+      debug:
+        msg: "{{ image_existence }}"
+      when: debug_enabled
+
+    - name: Push images that exist locally (true in image_existence)
+      containers.podman.podman_image:
+        name: "{{ __source_image_list_item.source_image_name }}"
+        tag: "{{ __source_image_list_item.source_image_tag }}"
+        push: true
+      loop: "{{ source_image_list }}"
+      loop_control:
+        loop_var: __source_image_list_item
+      when: image_existence[__source_image_list_item.source_image_name + ':' + __source_image_list_item.source_image_tag]
+
+    - name: Run podman auto-update
+      command: podman auto-update
+      become: true
+...
