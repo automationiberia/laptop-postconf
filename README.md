@@ -43,5 +43,9 @@ Below are the commands to execute the playbooks for configuring and managing the
     ```bash
     ansible-playbook os_mgmt.laptop_postconf.generate_bootloaders_files.yml -e '{efi_grub_files_destination: ~/iso-build/laptop-rhel84/DevicesGRUBs/, bios_ipxe_files_destination: ~/iso-build/laptop-rhel84/ipxe/}'
     ```
+6. Generate Custom ISO:
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.generate_custom_iso.yaml -e@ansible-content/vars/generate_custom_iso_vars.yaml
+    ```
 
 Make sure to replace any placeholders like `admin` with appropriate values and adjust paths if necessary.

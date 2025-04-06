@@ -1,0 +1,7 @@
+---
+iso_build_path: "/home/{{ ansible_user }}/iso-build"
+iso_rhde_installer: "/tmp/768cf5f2-bebd-45e5-a058-6b7b88f75a34-installer.iso"
+iso_dst_path: "/var/www/html/iso"
+iso_2_build_name: "laptop-rhel84"
+ansible_user: pgoku
+...
