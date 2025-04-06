@@ -10,6 +10,7 @@
     iso_dst_path: "/var/www/html/iso"
     iso_2_build_name: "laptop-rhel84"
     ansible_user: pgoku
+    clean_up_directories_enabled: false
   tasks:
     - name: Create directories
       ansible.builtin.file:
@@ -112,6 +113,7 @@
         - "/home/{{ ansible_user }}/mnt/{{iso_2_build_name }}"
         - "{{ iso_build_path }}"
       become: yes
+      when: clean_up_directories_enabled
 
     - ansible.builtin.debug:
         msg: "Download the ISO from http://{{ ansible_facts[ansible_interfaces[1]].ipv4.address }}/iso/{{iso_2_build_name }}/{{ iso_2_build_name }}.iso"
