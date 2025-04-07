@@ -6,8 +6,10 @@
     source_image_list:
       - source_image_name: "rhde-lptp.bcnconsulting.com:5000/image1-rhel84"
         source_image_tag: "1.0.2"
+        target_image_tag: prod
       - source_image_name: "rhde-lptp.bcnconsulting.com:5000/image2-rhel84"
         source_image_tag: "2.1.0"
+        target_image_tag: prod
     debug_enabled: false
 
   tasks:
@@ -36,10 +38,20 @@
         msg: "{{ image_existence }}"
       when: debug_enabled
 
+    - name: Tag images pointing to production
+      containers.podman.podman_tag:
+        image:  "{{ __source_image_list_item.source_image_name }}:{{ __source_image_list_item.source_image_tag }}"
+        target_names:
+          - "{{ __source_image_list_item.source_image_name }}:{{ __source_image_list_item.target_image_tag }}"
+      loop: "{{ source_image_list }}"
+      loop_control:
+        loop_var: __source_image_list_item
+      when: image_existence[__source_image_list_item.source_image_name + ':' + __source_image_list_item.source_image_tag]
+
     - name: Push images that exist locally (true in image_existence)
       containers.podman.podman_image:
         name: "{{ __source_image_list_item.source_image_name }}"
-        tag: "{{ __source_image_list_item.source_image_tag }}"
+        tag: "{{ __source_image_list_item.target_image_tag }}"
         push: true
       loop: "{{ source_image_list }}"
       loop_control:
