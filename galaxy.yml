@@ -46,6 +46,7 @@ tags:
 # range specifiers can be set and are separated by ','
 dependencies:
    "containers.podman": "*"
+   "ansible.posix": "*"
 
 # The URL of the originating SCM repository
 repository: http://example.com/repository
