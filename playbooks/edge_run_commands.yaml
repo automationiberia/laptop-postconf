@@ -1,0 +1,12 @@
+---
+- name: Execute Command on Edge Remote Host
+  hosts: edge_servers
+  tasks:
+    - name: "Execute the command {{ command_to_execute }}"
+      shell: "{{ command_to_execute }}"
+      register: command_output
+
+    - name: Display command output
+      debug:
+       var: command_output.stdout
+...

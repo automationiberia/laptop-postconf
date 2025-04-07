@@ -39,11 +39,22 @@ Below are the commands to execute the playbooks for configuring and managing the
     ansible-playbook os_mgmt.laptop_postconf.edge_gather_version_info.yaml -i ansible-content/inventories/ -u admin -k
     ```
 
-5. Generate Bootloader Files:
+7. Run Command Remote Edge Devices
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.edge_run_commands.yaml -e '{command_to_execute: uptime}'
+    ansible-playbook os_mgmt.laptop_postconf.edge_run_commands.yaml -e '{command_to_execute: rpm-ostree upgrade}'
+    ```
+
+6. Reboot Edge Devices
+    ```bash
+    ansible-playbook os_mgmt.laptop_postconf.edge_reboot_devices.yaml
+    ```
+
+7. Generate Bootloader Files:
     ```bash
     ansible-playbook os_mgmt.laptop_postconf.generate_bootloaders_files.yml -e '{efi_grub_files_destination: ~/iso-build/laptop-rhel84/DevicesGRUBs/, bios_ipxe_files_destination: ~/iso-build/laptop-rhel84/ipxe/}'
     ```
-6. Generate Custom ISO:
+8. Generate Custom ISO:
     ```bash
     ansible-playbook os_mgmt.laptop_postconf.generate_custom_iso.yaml -e@ansible-content/vars/generate_custom_iso_vars.yaml
     ```
