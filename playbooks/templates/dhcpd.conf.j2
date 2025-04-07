@@ -10,7 +10,7 @@ subnet {{ dhcp_subnet }} netmask {{ dhcp_netmask }} {
   option domain-name-servers {{ dhcp_dns_servers }};
   range {{ dhcp_range_start }} {{ dhcp_range_end }};
 
-{% for group in ['edge_servers_nord', 'edge_servers_south'] %}
+{% for group in ['edge_servers'] %}
 {% if groups[group] is defined %}
 {% for host in groups[group] %}
   host {{ host  }} {
